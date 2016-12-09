@@ -37,7 +37,7 @@ tweetSchema.statics.checkWeek = function(cb) {
     if (err) return console.log(`Unable to check tweets. Encountered a ${err.name}.`)
     console.log(`Updating ${tweets.length} tweets`);
     var completed = 0;
-    tweets.map((tweet,i) => {
+    tweets.forEach((tweet,i) => {
       request(tweet.twitterLink, (err,resp) => {
         if (resp.statusCode === 404) tweet.set({deleted: true});
         tweet.save(err => {

@@ -69,4 +69,32 @@ router.post('/', function(req, res, next) {
 
 ## Step Three: Heroku Scheduler
 
-I still needed to be able to check my database against what is still available on twitter. Thankfully, Heroku, my cloud server of choice, has a simple scheduler that makes quick work of this task. A quick run in the console of `heroku addons:create scheduler:standard`. Since I am working in NodeJS, it would be easier for me to run a node script. Heroku Scheduler runs a bash-style command with bin as the root, so I created a file `checkTweets` in `/bin` with `#!/usr/bin/env node` as the top line to say that I was working in a node environment. 
+I still needed to be able to check my database against what is still available on twitter. Thankfully, Heroku, my cloud server of choice, has a simple scheduler that makes quick work of this task. A quick run in the console of `heroku addons:create scheduler:standard`. Since I am working in NodeJS, it would be easier for me to run a node script. Heroku Scheduler runs a bash-style command with bin as the root, so I created a file `checkTweets` in `/bin` with `#!/usr/bin/env node` as the top line to say that I was working in a node environment.
+
+From there, I needed to make my checking method, which would go through all tweets I saved from the last week and check if any had been deleted. This meant a mongoose time query to get the target tweets, and then looping through to check if any had been changed.
+
+```javascript
+tweetSchema.statics.checkWeek = function(cb) {
+  var lastWeek = new Date(new Date().setDate(new Date().getDate()-7))
+  this.model('Tweet').find({timestamp : {$gte : lastWeek}}).then((tweets,err) => {
+    if (err) return console.log(`Unable to check tweets. Encountered a ${err.name}.`)
+    console.log(`Updating ${tweets.length} tweets`);
+    var completed = 0;
+    tweets.forEach((tweet,i) => {
+      request(tweet.twitterLink, (err,resp) => {
+        if (resp.statusCode === 404) tweet.set({deleted: true});
+        tweet.save(err => {
+          if (err) console.log(`Unable to update tweet [${tweet.twitterID}]. Encountered a ${err.name}.`);
+          // else console.log(`No change in tweet [${tweet.twitterID}]`);
+        }).then(() => {
+          completed++;
+          if (completed === tweets.length) {
+            console.log('all tweets checked');
+            cb()
+          }
+        });
+      });
+    });
+  });
+};
+```
