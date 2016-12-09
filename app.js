@@ -27,7 +27,6 @@ db.once('open', () => console.log("DB Connected!"));
 
 var webhook = require('./routes/webhook');
 var index   = require('./routes/index');
-var users   = require('./routes/users');
 
 var app = express();
 
@@ -63,7 +62,6 @@ app.use('/new-tweet', limiter);
 // ------------------------------------
 
 app.use('/', index);
-app.use('/users', users);
 app.use('/new-tweet', webhook);
 
 // catch 404 and forward to error handler

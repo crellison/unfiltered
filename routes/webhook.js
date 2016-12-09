@@ -10,7 +10,8 @@ var router = express.Router();
 
 router.post('/', function(req, res, next) {
   // proper body form
-  if (!req.body.tweetURI || req.body.tweetURI.match(twitterBase).length !== 1) return esh(res,400,{message: 'Improper link format'});
+  if (!req.body.tweetURI || req.body.tweetURI.match(twitterBase).length !== 1) 
+    return esh(res,400,{message: 'Improper link format'});
   request(req.body.tweetURI, (err, resp, body) => {
     var tweetHTML = cheerio(body).find('.permalink-tweet-container .js-original-tweet')[0]
     var tweetDB = new TweetModel({

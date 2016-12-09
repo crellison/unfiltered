@@ -44,7 +44,8 @@ var twitterBase = /^https:\/\/twitter.com\/realDonaldTrump\/status\/\d+$/;
 
 router.post('/', function(req, res, next) {
   // proper body form
-  if (!req.body.tweetURI || req.body.tweetURI.match(twitterBase).length !== 1) return esh(res,400,{message: 'Improper link format'});
+  if (!req.body.tweetURI || req.body.tweetURI.match(twitterBase).length !== 1) 
+    return esh(res,400,{message: 'Improper link format'});
   request(req.body.tweetURI, (err, resp, body) => {
     // grab the new tweet HTML from the response body
     var tweetHTML = cheerio(body).find('.permalink-tweet-container .js-original-tweet')[0]
@@ -69,24 +70,27 @@ router.post('/', function(req, res, next) {
 
 ## Step Three: Heroku Scheduler
 
-I still needed to be able to check my database against what is still available on twitter. Thankfully, Heroku, my cloud server of choice, has a simple scheduler that makes quick work of this task. A quick run in the console of `heroku addons:create scheduler:standard`. Since I am working in NodeJS, it would be easier for me to run a node script. Heroku Scheduler runs a bash-style command with bin as the root, so I created a file `checkTweets` in `/bin` with `#!/usr/bin/env node` as the top line to say that I was working in a node environment.
+I still needed to be able to check my database against what is still available on twitter. Thankfully, Heroku, my cloud server of choice, has a simple scheduler that makes quick work of this task. A quick run in the console of `heroku addons:create scheduler:standard`. Since I am working in NodeJS, it would be easier for me to run a node script. Heroku Scheduler runs a bash-style command with bin as the root, so I created `/bin/checkTweets` with `#!/usr/bin/env node` as the top line to say that I was working in a node environment.
 
-From there, I needed to make my checking method, which would go through all tweets I saved from the last week and check if any had been deleted. This meant a mongoose time query to get the target tweets, and then looping through to check if any had been changed.
+From there, I needed to make my checking method, which would go through all tweets I saved from the last week and check if any had been deleted. This meant a mongoose time query to get the target tweets, and then looping through to check if any had been changed. I made this as a static Mongoose method so I could use it again if need be.
 
 ```javascript
-tweetSchema.statics.checkWeek = function(cb) {
+tweetSchema.statics.checkWeek = function(cb) { 
+  // arrow function binding changes how `this` functions
+  // date object one week prior to "now"
   var lastWeek = new Date(new Date().setDate(new Date().getDate()-7))
   this.model('Tweet').find({timestamp : {$gte : lastWeek}}).then((tweets,err) => {
     if (err) return console.log(`Unable to check tweets. Encountered a ${err.name}.`)
     console.log(`Updating ${tweets.length} tweets`);
     var completed = 0;
-    tweets.forEach((tweet,i) => {
-      request(tweet.twitterLink, (err,resp) => {
+    tweets.forEach((tweet,i) => { // GET request to the tweet URI
+      request(tweet.twitterLink, (err,resp) => { // if 404 => the tweet is deleted
         if (resp.statusCode === 404) tweet.set({deleted: true});
         tweet.save(err => {
           if (err) console.log(`Unable to update tweet [${tweet.twitterID}]. Encountered a ${err.name}.`);
           // else console.log(`No change in tweet [${tweet.twitterID}]`);
         }).then(() => {
+          // promise workaround to execute the callback when everything is done
           completed++;
           if (completed === tweets.length) {
             console.log('all tweets checked');
@@ -98,3 +102,9 @@ tweetSchema.statics.checkWeek = function(cb) {
   });
 };
 ```
+
+I set up the scheduler to open a connection with the DB and call this function once each day from the `/bin/checkTweets` file.
+
+## Step Four: Website
+
+Coming soon...
