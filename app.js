@@ -1,12 +1,19 @@
+// ------------------------------------
+// DEPENDENCIES
+// ------------------------------------
+
 const cookieParser = require('cookie-parser');
 const bodyParser   = require('body-parser');
+const rateLimit    = require('express-rate-limiter');
 const mongoose     = require('mongoose')
 const express      = require('express');
 const favicon      = require('serve-favicon');
 const logger       = require('morgan');
 const path         = require('path');
 
+// ------------------------------------
 // CONNECT TO DATABASE
+// ------------------------------------
 
 var connect = process.env.MONGODB_URI;
 mongoose.connect(connect);
@@ -14,7 +21,9 @@ mongoose.connect(connect);
 var db = mongoose.connection;
 db.once('open', () => console.log("DB Connected!"));
 
+// ------------------------------------
 // ROUTER FILES
+// ------------------------------------
 
 var webhook = require('./routes/webhook');
 var index   = require('./routes/index');
@@ -33,6 +42,25 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ------------------------------------
+// RATE LIMITING
+// ------------------------------------
+
+app.enable('trust proxy'); 
+ 
+var limiter = new RateLimit({
+  windowMs: 15*60*1000, // 15 minutes 
+  max: 50, // limit each IP to 50 requests per windowMs 
+  delayMs: 0 // disable delaying - full speed until the max limit is reached 
+});
+ 
+//  apply to all requests 
+app.use('/new-tweet', limiter);
+
+// ------------------------------------
+// ROUTING
+// ------------------------------------
 
 app.use('/', index);
 app.use('/users', users);
