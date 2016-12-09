@@ -25,8 +25,8 @@ router.post('/', function(req, res, next) {
         if (err.name === "ValidationError") return esh(res, 400);
         return esh(res, 422, {message: "Tweet already exists in database."})
       esh(res,200)
-    });
-  })
+    }
+  });
 });
 
 module.exports = router;
