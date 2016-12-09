@@ -8,7 +8,6 @@ var twitterBase = /^https:\/\/twitter.com\/realDonaldTrump\/status\/\d+$/;
 
 var router = express.Router();
 
-/* GET home page. */
 router.post('/', function(req, res, next) {
   // proper body form
   if (!req.body.tweetURI || req.body.tweetURI.match(twitterBase).length !== 1) return esh(res,400,{message: 'Improper link format'});
