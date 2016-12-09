@@ -4,7 +4,7 @@
 
 const cookieParser = require('cookie-parser');
 const bodyParser   = require('body-parser');
-const rateLimit    = require('express-rate-limiter');
+const RateLimit    = require('express-rate-limit');
 const mongoose     = require('mongoose')
 const express      = require('express');
 const favicon      = require('serve-favicon');
