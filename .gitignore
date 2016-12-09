@@ -1,3 +1,3 @@
 node_modules
-npm_logs
-
+npm-debug.log
+.torus.json

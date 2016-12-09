@@ -7,7 +7,8 @@ var tweetSchema = mongoose.Schema({
   },
   twitterID: {
     type: Number,
-    required: true
+    required: true,
+    unique: true
   },
   twitterLink: {
     type: String,
@@ -20,7 +21,8 @@ var tweetSchema = mongoose.Schema({
   },
   timestamp: {
     type: Date,
-    required: true
+    required: true,
+    unique: true
   }
 });
 

@@ -1,23 +1,29 @@
 {
   "name": "unfiltered",
-  "version": "1.0.0",
   "description": "Trump's tweets that he doesn't want you to see",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/crellison/unfiltered.git"
-  },
+  "version": "0.0.0",
+  "private": true,
   "author": "Cole Ellison",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/crellison/unfiltered/issues"
   },
-  "homepage": "https://github.com/crellison/unfiltered#readme",
+  "scripts": {
+    "test": "torus run node ./bin/www",
+    "start": "node ./bin/www"
+  },
   "dependencies": {
+    "body-parser": "~1.15.2",
     "cheerio": "^0.22.0",
-    "request": "^2.79.0"
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.2.0",
+    "express": "~4.14.0",
+    "express-status-helper": "^2.0.3",
+    "mongoose": "^4.7.2",
+    "morgan": "~1.7.0",
+    "pug": "~2.0.0-beta6",
+    "request": "^2.79.0",
+    "serve-favicon": "~2.3.0",
+    "underscore": "^1.8.3"
   }
 }
