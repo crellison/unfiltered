@@ -14,28 +14,40 @@ mongoose.connect(connect);
 
 var db = mongoose.connection;
 db.once('open', () => console.log("DB Connected!"));
-
+// use logic in webhook again
 Tweets.latestID((err,tweet) => {
   // tweet[0].twitterID
-  db.close();
+  // db.close();
   request('http://twitter.com/realDonaldTrump', (err, resp, body) => {
     var tweets = cheerio(body).find('.tweet');
-    this.completed = false;
-    for (var i = 0; i < tweets.length; i++) {
-      if (tweets[i].attribs['data-permalink-path'] !== tweet[0].twitterLink) {
-        request.post({
-          url: 'http://unfiltered.herokuapp.com/new-tweet', 
-          form: {tweetURI: `http://twitter.com/${tweets[i].attribs['data-permalink-path']}`},
-          function(err, resp, body) {
-            console.log(resp.statusCode === 200 ? `added tweet ${tweets[i].attribs['data-tweet-id']}` : `error adding tweet ${current.attribs['data-tweet-id']}`);
-          }
-        })
-      } else {
-        if (this.completed === false) {
-          console.log('all new tweets accounted for');
-          this.completed = true;
+    var completed = 0;
+    var current = 0;
+    // if nothing new, exit and close the db connection
+    if (tweets[current].attribs['data-permalink-path'] === tweet[0].twitterLink) {
+      console.log('Nothing new')
+      return db.close()
+    }
+    // otherwise enter and add all new tweets
+    while (tweets[current].attribs['data-permalink-path'] !== tweet[0].twitterLink) {
+      completed++;
+      current++;
+      var newTweet = new Tweets({
+        HTMLtext: cheerio(cheerio(tweets[0]).find('.js-tweet-text-container')[0]).html().replace('href="/', 'href="https://twitter.com/'),
+        twitterID: cheerio(tweets[0]).data('tweet-id'),
+        twitterLink: cheerio(tweets[0]).data('permalink-path'),
+        timestamp: new Date(new Date(cheerio(tweets[0]).find('.tweet-timestamp')[0].attribs.title.replace('-','')))
+      })
+      newTweet.save(err => {
+        completed--;
+        if (err) {
+          if (err.name === "ValidationError") console.log('Tweet data malformed.');
+          else console.log('Tweet already exists in database');
         }
-      }
+        if (completed === 0) { // once completed is back to zero, all async calls have executed
+          console.log('All new tweets accounted for');
+          db.close()
+        }
+      })
     }
   })
 })
