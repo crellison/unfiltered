@@ -55,4 +55,8 @@ tweetSchema.statics.checkWeek = function(cb) {
   });
 };
 
+tweetSchema.statics.latestID = function(cb) {
+  this.model('Tweet').find().sort('-timestamp').limit(1).lean().exec(cb)
+}
+
 module.exports = mongoose.model('Tweet',tweetSchema);
