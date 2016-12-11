@@ -16,8 +16,6 @@ var db = mongoose.connection;
 db.once('open', () => console.log("DB Connected!"));
 // use logic in webhook again
 Tweets.latestID((err,tweet) => {
-  // tweet[0].twitterID
-  // db.close();
   request('http://twitter.com/realDonaldTrump', (err, resp, body) => {
     var tweets = cheerio(body).find('.tweet');
     var completed = 0;
